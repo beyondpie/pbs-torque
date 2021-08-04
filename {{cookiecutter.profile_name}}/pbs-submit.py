@@ -150,7 +150,7 @@ else:
             rule=job_properties["rule"],
         )
     elif "groupid" in job_properties:
-        jname = f" -N {job_properties['groupid']"
+        jname = f" -N {job_properties['groupid']}"
 if args.o:
     so = " -o " + args.o
 if args.p:
