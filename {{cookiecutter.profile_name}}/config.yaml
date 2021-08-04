@@ -1,6 +1,6 @@
-cluster: "$((INSTALL)/{{cookiecutter.profile_name}}/pbs-submit.py " # N.B. this is commented out because the cluster scheduler seems to purge information about completed jobs very quickly, creating issues with "Unknown Job Ids" --depend \"{dependencies}\""
-cluster-status: "$((INSTALL))/{{cookiecutter.profile_name}}/pbs-status.py"
-jobscript: "$((INSTALL))/{{cookiecutter.profile_name}}/pbs-jobscript.sh"
+cluster: "$((INSTALL)/pbs-submit.py " # N.B. this is commented out because the cluster scheduler seems to purge information about completed jobs very quickly, creating issues with "Unknown Job Ids" --depend \"{dependencies}\""
+cluster-status: "$((INSTALL))/pbs-status.py"
+jobscript: "$((INSTALL))/pbs-jobscript.sh"
 jobs: 500
 immediate-submit: {{cookiecutter.immediate_submit}}
 verbose: true
