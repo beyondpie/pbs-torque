@@ -265,7 +265,7 @@ cmd = "qsub {a}{A}{b}{c}{C}{d}{D}{e}{f}{h}{j}{l}{m}{M}{N}{o}{p}{P}{q}{t}{u}{v}{V
 # the scheduler
 class Locker:
     def __enter__(self):
-        lock = f"{scratch_directory}.snakemake.lock"
+        lock = f"{scratch_directory}/.snakemake.lock"
         if not os.path.isfile(lock):
             with open(lock, "w") as _:
                 pass
