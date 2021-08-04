@@ -1,5 +1,6 @@
 import os
 target = os.path.join(os.getcwd(), "{{cookiecutter.profile_name}}")
+print(target)
 
 # replaces all occurrences of $((INSTALL)) with the full path of the directory
 # installed to
