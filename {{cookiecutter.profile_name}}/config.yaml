@@ -1,4 +1,4 @@
-cluster: "$((INSTALL)/pbs-submit.py " # N.B. this is commented out because the cluster scheduler seems to purge information about completed jobs very quickly, creating issues with "Unknown Job Ids" --depend \"{dependencies}\""
+cluster: "$((INSTALL))/pbs-submit.py " # N.B. this is commented out because the cluster scheduler seems to purge information about completed jobs very quickly, creating issues with "Unknown Job Ids" --depend \"{dependencies}\""
 cluster-status: "$((INSTALL))/pbs-status.py"
 jobscript: "$((INSTALL))/pbs-jobscript.sh"
 jobs: 500
