@@ -6,6 +6,7 @@ target = os.path.join(os.getcwd(), "{{cookiecutter.profile_name}}")
 for root, dirs, fns in os.walk(target):
     for fn in fns:
         fn = os.path.join(root, fn)
+        print(f"checking {fn}")
         with open(fn) as fh:
             content = fh.read()
         content = content.replace("$((INSTALL))", target)
