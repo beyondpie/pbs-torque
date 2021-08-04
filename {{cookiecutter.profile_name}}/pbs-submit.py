@@ -210,7 +210,7 @@ if args.M:
 if args.m:
     mail = " -m " + args.m
 if not walltime:
-    walltime = default_queue_times[args.q]
+    walltime = f"walltime={default_queue_times[args.q]}"
 
 if nodes or ppn or mem or walltime:
     resourceparams = ' -l "'
