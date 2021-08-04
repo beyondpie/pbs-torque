@@ -2,6 +2,8 @@
 
 This profile configures Snakemake to run on the [Torque Scheduler](http://www.adaptivecomputing.com/products/open-source/torque/).
 
+The profile has been modified to set up logging, emailing, and be aware of cluster queue default walltimes for TSCC at UCSD.
+
 ## Setup
 
 ### Deploy profile
@@ -10,7 +12,7 @@ To deploy this profile, run
 
     mkdir -p ~/.config/snakemake
     cd ~/.config/snakemake
-    cookiecutter https://github.com/Snakemake-Profiles/pbs-torque.git
+    cookiecutter https://github.com/brcopeland/pbs-torque.git
 
 Then, you can run Snakemake with
 
