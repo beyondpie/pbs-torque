@@ -46,7 +46,7 @@ parser.add_argument(
 parser.add_argument("-j", help="Merge standard error and standard out. (oe or eo)")
 parser.add_argument("-l", help="Resource list.")
 parser.add_argument("-m", help="Mail options.", default="a")
-parser.add_argument("-M", help="Mail users.", default=f"{user_name}@ucsd.edu")
+parser.add_argument("-M", help="Mail users.", default="{{cookiecutter.email_address}}")
 parser.add_argument("-N", help="Name for the job.")
 parser.add_argument("-o", help="standard output path.", default="/dev/null")
 parser.add_argument("-p", help="Set job priority.")

@@ -1,4 +1,5 @@
 {
     "profile_name": "pbs-torque",
-    "immediate_submit": false
+    "immediate_submit": false,
+    "email_address": "brcopeland@ucsd.edu"
 }
