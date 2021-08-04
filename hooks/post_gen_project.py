@@ -10,5 +10,4 @@ for root, dirs, fns in os.walk(target):
             content = fh.read()
         content = content.replace("$((INSTALL))", target)
         with open(fn, "w") as fh:
-            f.write(content)
-
+            fh.write(content)
