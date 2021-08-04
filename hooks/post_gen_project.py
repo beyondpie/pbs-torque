@@ -1,5 +1,5 @@
 import os
-os.getcwd()
+target = os.getcwd()
 
 # replaces all occurrences of $((INSTALL)) with the full path of the directory
 # installed to
