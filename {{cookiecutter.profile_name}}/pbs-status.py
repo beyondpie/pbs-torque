@@ -25,4 +25,21 @@ try:
         print("running")
 
 except (subprocess.CalledProcessError, IndexError, KeyboardInterrupt) as e:
-    print("failed")
+    # check log file instead; this can report a failure if the job is no longer
+    # reported by qstat
+    # print("failed")
+    failure = True
+    import os
+    from datetime import date
+    from glob import glob
+    log_directory = f"/oasis/tscc/scratch/{os.getlogin()}/TORQUE/logs/{date.today()}"
+    error_logs = glob(f"{log_directory}/*.e{jobid}")
+    if len(error_logs) == 1:
+        with open(error_logs[0]) as log_fh:
+            for line in log_fh:
+                pass
+        if line.endswith("(100%) done\n"):
+            failure = False
+            print("success")
+    if failure:
+        print("failed")
