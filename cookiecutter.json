@@ -4,7 +4,7 @@
     "restart_times": "0",
     "latency_wait": "60",
     "use_conda": ["True", "False"],
-    "conda_frontend": ["mamba", "conda"],
+    "conda_frontend": ["conda", "mamba"],
     "keep_going": ["False", "True"],
     "rerun_incomplete": ["True", "False"],
     "immediate_submit": ["False", "True"],
