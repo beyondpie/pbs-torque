@@ -3,4 +3,13 @@ cluster-status: "$((INSTALL))/pbs-status.py"
 jobscript: "$((INSTALL))/pbs-jobscript.sh"
 jobs: 500
 immediate-submit: {{cookiecutter.immediate_submit}}
-verbose: true
+verbose: {{cookiecutter.verbose}}
+shadow-prefix: /oasis/tscc/scratch/$((USER))
+local-cores: 1
+restart-times: {{cookiecutter.restart_times}}
+latency-wait: {{cookiecutter.latency_wait}}
+use-conda: {{cookiecutter.use_conda}}
+conda-frontend: {{cookiecutter.conda_frontend}}
+keep-going: {{cookiecutter.keep_going}}
+rerun-incomplete: {{cookiecutter.rerun_incomplete}}
+printshellcmds: {{cookiecutter.printshellcmds}}

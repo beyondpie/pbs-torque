@@ -1,5 +1,13 @@
 {
     "profile_name": "pbs-torque",
-    "immediate_submit": false,
-    "email": ""
+    "email": "",
+    "restart_times": "0",
+    "latency_wait": "60",
+    "use_conda": ["True", "False"],
+    "conda_frontend": ["mamba", "conda"],
+    "keep_going": ["False", "True"],
+    "rerun_incomplete": ["True", "False"],
+    "immediate_submit": ["False", "True"],
+    "verbose": ["True", "False"],
+    "printshellcmds": ["True", "False"]
 }
