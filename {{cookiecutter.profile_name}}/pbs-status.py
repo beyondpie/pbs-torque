@@ -3,9 +3,7 @@
 import sys
 import subprocess
 import xml.etree.cElementTree as ET
-from time import sleep
 
-SLEEP_TIME = 30
 jobid = sys.argv[1]
 
 try:
@@ -17,7 +15,6 @@ try:
     if job_state == "C":
         exit_status = xmldoc.findall('.//exit_status')[0].text
         if exit_status == '0':
-            sleep(SLEEP_TIME) # wait before reporting success to deal with NFS latency
             print("success")
         else:
             print("failed")
