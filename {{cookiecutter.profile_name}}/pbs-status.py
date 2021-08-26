@@ -32,8 +32,10 @@ except (subprocess.CalledProcessError, IndexError, KeyboardInterrupt) as e:
     import os
     from datetime import date
     from glob import glob
+    # the job id normally has the suffix .tscc-mgr\d.local which we do not want
+    job_id = jobid.split(".")[0]
     log_directory = f"/oasis/tscc/scratch/{os.getlogin()}/TORQUE/logs/{date.today()}"
-    error_logs = glob(f"{log_directory}/*.e{jobid}")
+    error_logs = glob(f"{log_directory}/*.e{job_id}")
     if len(error_logs) == 1:
         with open(error_logs[0]) as log_fh:
             for line in log_fh:
