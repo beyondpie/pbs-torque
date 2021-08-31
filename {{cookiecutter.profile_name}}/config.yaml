@@ -13,3 +13,4 @@ conda-frontend: {{cookiecutter.conda_frontend}}
 keep-going: {{cookiecutter.keep_going}}
 rerun-incomplete: {{cookiecutter.rerun_incomplete}}
 printshellcmds: {{cookiecutter.printshellcmds}}
+conda-prefix: /oasis/tscc/scratch/$((USER))/.snakemake
