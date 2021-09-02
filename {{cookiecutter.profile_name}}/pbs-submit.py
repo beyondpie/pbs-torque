@@ -97,7 +97,7 @@ if "resources" in job_properties:
         mem = f"mem={resources['mem']}"
     if "walltime" in resources:
         walltime = f"walltime={resources['walltime']}"
-    if "queue" in resources and not args_dict["q"]:
+    if "queue" in resources and "-q" not in sys.argv:
         args_dict["q"] = str(resources["queue"])
     if "email" in resources and not args_dict["M"]:
         args_dict["M"] = str(resources["email"])
