@@ -8,6 +8,7 @@ from snakemake.utils import read_job_properties
 from datetime import date
 import fcntl
 from time import sleep
+from functools import partial
 
 default_queue_times = {
     "hotel": "24:00:00",
@@ -21,7 +22,7 @@ default_queue_times = {
 user_name = os.getlogin()
 scratch_directory = f"/oasis/tscc/scratch/{user_name}"
 log_directory = f"{scratch_directory}/TORQUE/logs/{date.today()}"
-SLEEP_TIME = 1 # wait one second between job submission
+SLEEP_TIME = 1  # wait one second between job submission
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument(
@@ -77,189 +78,126 @@ jobscript = sys.argv[-1]
 
 job_properties = read_job_properties(jobscript)
 
-atime = ""
-acc_string = ""
-pbs_time = ""
-chkpt = ""
-pref = ""
-dd = ""
-rd = ""
-se = ""
-ft = ""
-hold = ""
-j = ""
-resource = ""
-mail = ""
-mailuser = ""
-jname = ""
-so = ""
-priority = ""
-proxy = ""
-q = ""
-ar = ""
-user = ""
-ev = ""
-eall = ""
-wd = ""
-add = ""
-depend = ""
-resourceparams = ""
-extras = ""
-
-
-if args.depend:
-    for m in args.depend.split(" "):
-        depend = depend + ":" + m
-if depend:
-    depend = ' -W "depend=afterok' + depend + '"'
-
-if args.positional:
-    for m in args.positional:
-        extras = extras + " " + m
-
-if args.a:
-    atime = " -a " + args.a
-if args.A:
-    acc_string = " -A " + args.A
-if args.b:
-    pbs_time = " -b " + args.b
-if args.c:
-    chkpt = " -c " + args.c
-if args.C:
-    pref = " -C " + args.C
-if args.d:
-    dd = " -d " + args.d
-if args.D:
-    rd = " -D " + args.D
-if args.e:
-    se = " -e " + args.e
-if args.f:
-    ft = " -f"
-if args.h:
-    hold = " -h"
-if args.j:
-    j = " -j " + args.j
-if args.l:
-    resource = " -l " + args.l
-if args.N:
-    jname = " -N " + args.N
-else:
-    if "wildcards" in job_properties:
-        jname = " -N {wildcards}.{rule}".format(
-            wildcards=".".join(iter(job_properties["wildcards"].values())),
-            rule=job_properties["rule"],
-        )
-    elif "groupid" in job_properties:
-        jname = f" -N {job_properties['groupid']}"
-if args.o:
-    so = " -o " + args.o
-if args.p:
-    priority = " -p " + args.p
-if args.P:
-    proxy = " -P " + args.P
-if args.t:
-    ar = " -t " + args.ar
-if args.u:
-    user = " -u " + args.u
-if args.v:
-    ev = " -v " + args.v
-if args.V:
-    eall = " -V"
-eall = " -V"
-if args.w:
-    wd = " -w " + args.w
-if args.W:
-    add = ' -W "' + args.W + '"'
+parameters = []
+args_dict = vars(args)
 
 nodes = ""
 ppn = ""
 mem = ""
 walltime = ""
-
 if "threads" in job_properties:
-    ppn = "ppn=" + str(job_properties["threads"])
-
+    ppn = f"ppn={job_properties['threads']}"
 if "resources" in job_properties:
     resources = job_properties["resources"]
     if "nodes" in resources:
-        nodes = "nodes=" + str(resources["nodes"])
+        nodes = f"nodes={resources['nodes']}"
     if ppn and not nodes:
         nodes = "nodes=1"
     if "mem" in resources:
-        mem = "mem=" + str(resources["mem"])
+        mem = f"mem={resources['mem']}"
     if "walltime" in resources:
-        walltime = "walltime=" + str(resources["walltime"])
-    if "queue" in resources:
-        args.q = str(resources["queue"])
-    if "email" in resources:
-        args.M = str(resources["email"])
-    if "mail" in resources:
-        args.m = str(resources["mail"])
+        walltime = f"walltime={resources['walltime']}"
+    if "queue" in resources and not args_dict["q"]:
+        args_dict["q"] = str(resources["queue"])
+    if "email" in resources and not args_dict["M"]:
+        args_dict["M"] = str(resources["email"])
+    if "mail" in resources and not args_dict["m"]:
+        args_dict["m"] = str(resources["mail"])
 if "params" in job_properties:
     params = job_properties["params"]
     if "stdout" in params:
-        os.makedirs(os.path.dirname(params["stdout"]), exist_ok=True)
-        so = " -o " + params["stdout"]
+        if not args_dict["o"]:
+            os.makedirs(os.path.dirname(params["stdout"]), exist_ok=True)
+            args_dict["o"] = params["stdout"]
     if "stderr" in params:
-        os.makedirs(os.path.dirname(params["stderr"]), exist_ok=True)
-        se = " -e " + params["stderr"]
-if args.q:
-    q = " -q " + args.q
-if args.M:
-    mailuser = " -M " + args.M
-if args.m:
-    mail = " -m " + args.m
+        if not args_dict["e"]:
+            os.makedirs(os.path.dirname(params["stderr"]), exist_ok=True)
+            args_dict["e"] = params["stderr"]
+
+
+def format_argument(args_dict, arg, quote_argument=False):
+    if args_dict[arg]:
+        if type(args_dict[arg]) is bool:
+            return f"-{arg}"
+        else:
+            if quote_argument:
+                return f'-{arg} "{args_dict[arg]}"'
+            else:
+                return f"-{arg} {args_dict[arg]}"
+    else:
+        return ""
+
+
+format_argument = partial(format_argument, args_dict)
+for arg in (
+    "a",
+    "A",
+    "B",
+    "c",
+    "C",
+    "d",
+    "D",
+    "e",
+    "f",
+    "h",
+    "j",
+    "l",
+    "m",
+    "M",
+    "mailuser",
+    "o",
+    "p",
+    "P",
+    "q",
+    "t",
+    "u",
+    "v",
+    "w",
+):
+    parameters.append(format_argument(arg))
+for arg in ("W",):
+    parameters.append(format_argument(arg, format_argument=True))
+jname = ""
+if args.N:
+    jname = f"-N {args_dict['N']}"
+else:
+    if "wildcards" in job_properties:
+        jname = "-N {wildcards}.{rule}".format(
+            wildcards=".".join(iter(job_properties["wildcards"].values())),
+            rule=job_properties["rule"],
+        )
+    elif "groupid" in job_properties:
+        jname = f"-N {job_properties['groupid']}"
+parameters.append(jname)
+
+parameters.append("-V")
+if args.depend:
+    parameters.append(f' -W "depend=afterok:{args.depend.replace(" ", ":")}"')
+if args.positional:
+    parameters.append(f' {" ".join(args.positional)}')
+
 if not walltime:
     walltime = f"walltime={default_queue_times[args.q]}"
 
+resourceparams_list = []
 if nodes or ppn or mem or walltime:
-    resourceparams = ' -l "'
-if nodes:
-    resourceparams = resourceparams + nodes
-if nodes and ppn:
-    resourceparams = resourceparams + ":" + ppn
-if nodes and mem:
-    resourceparams = resourceparams + ","
-if mem:
-    resourceparams = resourceparams + mem
-if walltime and (nodes or mem):
-    resourceparams = resourceparams + ","
-if walltime:
-    resourceparams = resourceparams + walltime
-if nodes or mem or walltime:
-    resourceparams = resourceparams + '"'
+    resourceparams_list.append('-l "')
+    if nodes:
+        resourceparams_list.append(nodes)
+        if ppn:
+            resourceparams_list.append(f":{ppn}")
+        if mem:
+            resourceparams_list.append(",")
+    if mem:
+        resourceparams_list.append(mem)
+    if walltime:
+        if nodes or mem:
+            resourceparams_list.append(",")
+        resourceparams_list.append(walltime)
+    resourceparams_list.append('"')
+parameters.append("".join(resourceparams_list))
 
-
-cmd = "qsub {a}{A}{b}{c}{C}{d}{D}{e}{f}{h}{j}{l}{m}{M}{N}{o}{p}{P}{q}{t}{u}{v}{V}{w}{W}{rp}{dep}{ex}".format(
-    a=atime,
-    A=acc_string,
-    b=pbs_time,
-    c=chkpt,
-    C=pref,
-    d=dd,
-    D=rd,
-    e=se,
-    f=ft,
-    h=hold,
-    j=j,
-    l=resource,
-    m=mail,
-    M=mailuser,
-    N=jname,
-    o=so,
-    p=priority,
-    P=proxy,
-    q=q,
-    t=ar,
-    u=user,
-    v=ev,
-    V=eall,
-    w=wd,
-    W=add,
-    rp=resourceparams,
-    dep=depend,
-    ex=extras,
-)
+cmd = " ".join(parameters)
 
 # write the command to a log file and wait for a second to avoid overwhelming
 # the scheduler
