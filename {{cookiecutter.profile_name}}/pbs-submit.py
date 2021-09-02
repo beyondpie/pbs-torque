@@ -132,7 +132,6 @@ format_argument = partial(format_argument, args_dict)
 for arg in (
     "a",
     "A",
-    "B",
     "c",
     "C",
     "d",
