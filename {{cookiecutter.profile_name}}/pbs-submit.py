@@ -143,7 +143,6 @@ for arg in (
     "l",
     "m",
     "M",
-    "mailuser",
     "o",
     "p",
     "P",
@@ -153,9 +152,13 @@ for arg in (
     "v",
     "w",
 ):
-    parameters.append(format_argument(arg))
+    parameter = format_argument(arg)
+    if parameter:
+        parameters.append(parameter)
 for arg in ("W",):
-    parameters.append(format_argument(arg, format_argument=True))
+    parameter = format_argument(arg, quote_argument=True)
+    if parameter:
+        parameters.append(parameter)
 jname = ""
 if args.N:
     jname = f"-N {args_dict['N']}"
@@ -194,9 +197,9 @@ if nodes or ppn or mem or walltime:
             resourceparams_list.append(",")
         resourceparams_list.append(walltime)
     resourceparams_list.append('"')
-parameters.append("".join(resourceparams_list))
+    parameters.append("".join(resourceparams_list))
 
-cmd = " ".join(parameters)
+cmd = "qsub " + " ".join(parameters)
 
 # write the command to a log file and wait for a second to avoid overwhelming
 # the scheduler
