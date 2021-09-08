@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 import subprocess
+import yaml
 
 from snakemake.utils import read_job_properties
 from datetime import date
@@ -10,32 +11,9 @@ import fcntl
 from time import sleep
 from functools import partial
 
-DEFAULT_QUEUE = "condo"
-force_default_queue = False  # set this to True if you don't want to submit to a
-# queue based on the walltime (will default to DEFAULT_QUEUE then if not
-# specified)
-default_queue_times = {
-    "hotel": 24,
-    "gpu-hotel": 24,
-    "pdafm": 24,
-    "home": 72,
-    "condo": 8,
-    "gpu-condo": 8,
-    "glean": 1,
-}
-max_queue_times = {
-    "hotel": 168,
-    "gpu-hotel": 168,
-    "pdafm": 168,
-    "home": 999999999,
-    "condo": 8,
-    "gpu-condo": 8,
-    "glean": 1,
-}
-user_name = os.getlogin()
-scratch_directory = f"/oasis/tscc/scratch/{user_name}"
-log_directory = f"{scratch_directory}/TORQUE/logs/{date.today()}"
-SLEEP_TIME = 1  # wait one second between job submission
+with open("submit.yaml") as config_fh:
+    config = yaml.safe_load(config_fh)
+log_directory = f"{config['scratch_directory']}/TORQUE/logs/{date.today()}"
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument(
@@ -60,7 +38,7 @@ parser.add_argument(
 parser.add_argument("-j", help="Merge standard error and standard out. (oe or eo)")
 parser.add_argument("-l", help="Resource list.")
 parser.add_argument("-m", help="Mail options.", default="a")
-parser.add_argument("-M", help="Mail users.", default="{{cookiecutter.email}}")
+parser.add_argument("-M", help="Mail users.", default=config["email"])
 parser.add_argument("-N", help="Name for the job.")
 parser.add_argument("-o", help="standard output path.", default="/dev/null")
 parser.add_argument("-p", help="Set job priority.")
@@ -84,7 +62,7 @@ if args.q:
     queue_specified = True
 else:
     queue_specified = False
-    args.q = DEFAULT_QUEUE
+    args.q = config["default_queue"]
 
 if (args.e == log_directory or args.o == log_directory) and not os.path.isdir(
     log_directory
@@ -157,18 +135,18 @@ if "params" in job_properties:
             args_dict["e"] = params["stderr"]
 
 if walltime is None:
-    walltime = default_queue_times[args_dict["q"]]
+    walltime = config["queue_times"][args_dict["q"]]["default"]
 else:
     # allocate to queue if not specified based on required walltime
-    if not force_default_queue and not queue_specified:
-        if walltime <= max_queue_times["glean"]:
-            args_dict["q"] = "glean"
-        elif walltime <= max_queue_times["condo"]:
-            args_dict["q"] = "condo"
-        elif walltime <= max_queue_times["hotel"]:
-            args_dict["q"] = "hotel"
-        else:
-            args_dict["q"] = "home"
+    if not config["force_default_queue"] and not queue_specified:
+        queue_chosen = False
+        for queue in config["queue_order"]:
+            if walltime <= config["queue_times"][queue]["max"]:
+                args_dict["q"] = queue
+                queue_chosen = True
+                break
+        if not queue_chosen:
+            args_dict["q"] = config["queue_fallback"]
 walltime = f"walltime={walltime}:00:00"
 
 
@@ -275,7 +253,7 @@ class Locker:
 with Locker():
     with open(f"{log_directory}/snakemake.qsub.log", "a") as qsub_log:
         qsub_log.write(f"{cmd}\n")
-    sleep(SLEEP_TIME)
+    sleep(config["sleep_time"])
 
 try:
     res = subprocess.run(cmd, capture_output=True, check=True, shell=True)

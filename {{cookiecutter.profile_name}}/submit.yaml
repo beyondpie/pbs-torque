@@ -1,0 +1,20 @@
+email: {{cookiecutter.email}}
+# set this to True if you don't want to submit to a queue based on the walltime
+# this means the default_queue will be used if not overridden
+force_default_queue: False
+default_queue: condo
+scratch_directory: /oasis/tscc/scratch/$((USER))
+sleep_time: 1 # waits this long before submitting a job to avoid overwhelming scheduler
+queue_times:
+  condo: {default: 8, max: 8}
+  glean: {default: 1, max: 1}
+  home: {default: 72, max: 99999} # home is unbounded
+  hotel: {default: 24, max: 168}
+  gpu-condo: {default: 8, max: 8}
+  gpu-hotel: {default: 24, max: 168}
+  pdafm: {default: 24, max: 168}
+# if queue is not otherwise specified the first of these queues is submitted to 
+# if its max walltime is not exceeded, then the next and so on
+queue_order: [glean, condo, hotel]
+# if the walltime exceeds that of all those in queue_order, use queue_fallback
+queue_fallback: home
