@@ -10,14 +10,27 @@ import fcntl
 from time import sleep
 from functools import partial
 
+DEFAULT_QUEUE = "condo"
+force_default_queue = False  # set this to True if you don't want to submit to a
+# queue based on the walltime (will default to DEFAULT_QUEUE then if not
+# specified)
 default_queue_times = {
-    "hotel": "24:00:00",
-    "gpu-hotel": "24:00:00",
-    "pdafm": "24:00:00",
-    "home": "72:00:00",
-    "condo": "8:00:00",
-    "gpu-condo": "8:00:00",
-    "glean": "1:00:00",
+    "hotel": 24,
+    "gpu-hotel": 24,
+    "pdafm": 24,
+    "home": 72,
+    "condo": 8,
+    "gpu-condo": 8,
+    "glean": 1,
+}
+max_queue_times = {
+    "hotel": 168,
+    "gpu-hotel": 168,
+    "pdafm": 168,
+    "home": 999999999,
+    "condo": 8,
+    "gpu-condo": 8,
+    "glean": 1,
 }
 user_name = os.getlogin()
 scratch_directory = f"/oasis/tscc/scratch/{user_name}"
@@ -52,7 +65,7 @@ parser.add_argument("-N", help="Name for the job.")
 parser.add_argument("-o", help="standard output path.", default="/dev/null")
 parser.add_argument("-p", help="Set job priority.")
 parser.add_argument("-P", help="Proxy user for job.")
-parser.add_argument("-q", help="Set destination queue.", default="condo")
+parser.add_argument("-q", help="Set destination queue.")
 parser.add_argument("-t", help="Array request.")
 parser.add_argument("-u", help="Set user name for job.")
 parser.add_argument("-v", help="Environment variables to export to the job.")
@@ -65,6 +78,14 @@ parser.add_argument("--help", help="Display help message.", action="store_true")
 
 parser.add_argument("positional", action="append", nargs="?")
 args = parser.parse_args()
+# initialize default queue
+if args.q:
+    # we don't override the queue specified if this is the case
+    queue_specified = True
+else:
+    queue_specified = False
+    args.q = DEFAULT_QUEUE
+
 if (args.e == log_directory or args.o == log_directory) and not os.path.isdir(
     log_directory
 ):
@@ -84,7 +105,7 @@ args_dict = vars(args)
 nodes = ""
 ppn = ""
 mem = ""
-walltime = ""
+walltime = None
 if "threads" in job_properties:
     ppn = f"ppn={job_properties['threads']}"
 if "resources" in job_properties:
@@ -96,9 +117,30 @@ if "resources" in job_properties:
     if "mem" in resources:
         mem = f"mem={resources['mem']}"
     if "walltime" in resources:
-        walltime = f"walltime={resources['walltime']}"
+        walltime = resources["walltime"]
+        # allow for string, i.e. 8:00:00, instead of 8 for backwards
+        # compatibility
+        try:
+            walltime = int(walltime)
+        except ValueError:
+            import re
+
+            p = re.compile("(\d+):(\d{2}):(\d{2})")
+            m = p.match(walltime)
+            if m:
+                hours, minutes, seconds = [int(g) for g in m.groups()]
+                if minutes or seconds:
+                    # rounding up to next hour
+                    hours += 1
+                walltime = hours
+            else:
+                raise ValueError(f"Could not parse {walltime=}.")
     if "queue" in resources and "-q" not in sys.argv:
-        args_dict["q"] = str(resources["queue"])
+        if not queue_specified:
+            # use queue specified in rule unless already specified on command
+            # line
+            args_dict["q"] = str(resources["queue"])
+            queue_specified = True
     if "email" in resources and not args_dict["M"]:
         args_dict["M"] = str(resources["email"])
     if "mail" in resources and not args_dict["m"]:
@@ -113,6 +155,21 @@ if "params" in job_properties:
         if not args_dict["e"]:
             os.makedirs(os.path.dirname(params["stderr"]), exist_ok=True)
             args_dict["e"] = params["stderr"]
+
+if walltime is None:
+    walltime = default_queue_times[args_dict["q"]]
+else:
+    # allocate to queue if not specified based on required walltime
+    if not force_default_queue and not queue_specified:
+        if walltime <= max_queue_times["glean"]:
+            args_dict["q"] = "glean"
+        elif walltime <= max_queue_times["condo"]:
+            args_dict["q"] = "condo"
+        elif walltime <= max_queue_times["hotel"]:
+            args_dict["q"] = "hotel"
+        else:
+            args_dict["q"] = "home"
+walltime = f"walltime={walltime}:00:00"
 
 
 def format_argument(args_dict, arg, quote_argument=False):
@@ -178,8 +235,6 @@ if args.depend:
 if args.positional:
     parameters.append(f' {" ".join(args.positional)}')
 
-if not walltime:
-    walltime = f"walltime={default_queue_times[args.q]}"
 
 resourceparams_list = []
 if nodes or ppn or mem or walltime:
