@@ -238,7 +238,7 @@ cmd = "qsub " + " ".join(parameters)
 # the scheduler
 class Locker:
     def __enter__(self):
-        lock = f"{scratch_directory}/.snakemake.lock"
+        lock = f"{config['scratch_directory']}/.snakemake.lock"
         if not os.path.isfile(lock):
             with open(lock, "w") as _:
                 pass
