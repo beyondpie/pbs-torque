@@ -147,6 +147,11 @@ else:
                 break
         if not queue_chosen:
             args_dict["q"] = config["queue_fallback"]
+# the requested walltime can be specified as 0 (or negative) to group jobs into
+# using the glean queue, but it wouldn't make much sense to request zero hours,
+# so...
+if walltime < 1:
+    walltime = 1
 walltime = f"walltime={walltime}:00:00"
 
 
