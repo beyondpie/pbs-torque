@@ -8,7 +8,7 @@ for fn in ("config.yaml", "submit.yaml"):
         content = fh.read()
     content = content.replace("$((USER))", user)
     with open(fn, "w") as fh:
-        fh.write(config)
+        fh.write(content)
 
 # replaces all occurrences of $((INSTALL)) with the full path of the directory
 # installed to
