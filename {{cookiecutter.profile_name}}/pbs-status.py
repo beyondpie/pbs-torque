@@ -24,14 +24,16 @@ try:
 except (subprocess.CalledProcessError, IndexError, KeyboardInterrupt) as e:
     # check log file instead; this can report a failure if the job is no longer
     # reported by qstat
-    # print("failed")
     failure = True
     import os
+    from yaml import safe_load
     from datetime import date
     from glob import glob
     # the job id normally has the suffix .tscc-mgr\d.local which we do not want
     job_id = jobid.split(".")[0]
-    log_directory = f"/oasis/tscc/scratch/{os.getlogin()}/TORQUE/logs/{date.today()}"
+    with open("submit.yaml") as config_fh:
+        config = yaml.safe_load(config_fh)
+    log_directory = f"{config['scratch_directory']}/TORQUE/logs/{date.today()}"
     error_logs = glob(f"{log_directory}/*.e{job_id}")
     if len(error_logs) == 1:
         with open(error_logs[0]) as log_fh:
