@@ -11,7 +11,7 @@ import fcntl
 from time import sleep
 from functools import partial
 
-with open("submit.yaml") as config_fh:
+with open("$((INSTALL))/submit.yaml") as config_fh:
     config = yaml.safe_load(config_fh)
 log_directory = f"{config['scratch_directory']}/TORQUE/logs/{date.today()}"
 

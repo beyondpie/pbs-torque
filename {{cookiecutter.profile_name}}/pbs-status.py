@@ -31,7 +31,7 @@ except (subprocess.CalledProcessError, IndexError, KeyboardInterrupt) as e:
     from glob import glob
     # the job id normally has the suffix .tscc-mgr\d.local which we do not want
     job_id = jobid.split(".")[0]
-    with open("submit.yaml") as config_fh:
+    with open("$((INSTALL))/submit.yaml") as config_fh:
         config = yaml.safe_load(config_fh)
     log_directory = f"{config['scratch_directory']}/TORQUE/logs/{date.today()}"
     error_logs = glob(f"{log_directory}/*.e{job_id}")
