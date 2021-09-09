@@ -9,5 +9,6 @@
     "rerun_incomplete": ["True", "False"],
     "immediate_submit": ["False", "True"],
     "verbose": ["True", "False"],
-    "printshellcmds": ["True", "False"]
+    "printshellcmds": ["True", "False"],
+    "submit_to_queue_with_fewest_jobs_waiting": ["False", "True"]
 }

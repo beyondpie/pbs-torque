@@ -152,6 +152,36 @@ else:
 # so...
 if walltime < 1:
     walltime = 1
+if config["submit_to_queue_with_fewest_jobs_waiting"] and walltime > 1:
+    # walltime is checked to leave jobs that should be allocated to glean alone
+    from heapq import heappush, heappop
+    h = []
+    out = subprocess.run(["qstat", "-Q"], capture_output=True, check=True,
+                         text=True)
+    queue_index, queued_index = 0, 5
+    output_lines = out.stdout.splitlines()
+    if len(output_lines) > 2:
+        header = output_lines[0].split()
+        if header[queue_index] != "Queue" or header[queued_index] != "Que":
+            raise Exception("Failed to parse qstat -Q output.")
+        for line in output_lines[2:]:
+            fields = line.split()
+            queue = fields[queue_index]
+            queued_jobs = int(fields[queued_index])
+            if queue in config["queues_to_check"]:
+                heappush(h, (queued_jobs, config["queues_to_check"][queue]))
+        queue_chosen = False
+        while True:
+            try:
+                _, queue = heappop(h)
+                if walltime <= config["queue_times"][queue]["max"]:
+                    queue_chosen = True
+                    break
+            except IndexError:
+                break
+        if not queue_chosen:
+            queue = config["queue_fallback"]
+        args_dict["q"] = queue
 walltime = f"walltime={walltime}:00:00"
 
 

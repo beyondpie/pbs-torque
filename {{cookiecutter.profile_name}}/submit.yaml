@@ -18,3 +18,8 @@ queue_times:
 queue_order: [glean, condo, hotel]
 # if the walltime exceeds that of all those in queue_order, use queue_fallback
 queue_fallback: home
+# if True, for any non-glean job (i.e. walltime > 1), submit to the queue in queues_to_check
+# with the least number of jobs currently queued among queues with sufficient max walltime
+submit_to_queue_with_fewest_jobs_waiting: {{cookiecutter.submit_to_queue_with_fewest_jobs_waiting}}
+# this maps home-jogleeson (the actual queue name) to home
+queues_to_check: {condo: condo, home-jogleeson: home, hotel: hotel}
