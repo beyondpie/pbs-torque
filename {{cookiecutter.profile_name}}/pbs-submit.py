@@ -135,18 +135,17 @@ if "params" in job_properties:
             args_dict["e"] = params["stderr"]
 
 if walltime is None:
-    walltime = config["queue_times"][args_dict["q"]]["default"]
-else:
-    # allocate to queue if not specified based on required walltime
-    if not config["force_default_queue"] and not queue_specified:
-        queue_chosen = False
-        for queue in config["queue_order"]:
-            if walltime <= config["queue_times"][queue]["max"]:
-                args_dict["q"] = queue
-                queue_chosen = True
-                break
-        if not queue_chosen:
-            args_dict["q"] = config["queue_fallback"]
+    walltime = config["default_walltime"]
+# allocate to queue if not specified based on required walltime
+if not config["force_default_queue"] and not queue_specified:
+    queue_chosen = False
+    for queue in config["queue_order"]:
+        if walltime <= config["queue_times"][queue]["max"]:
+            args_dict["q"] = queue
+            queue_chosen = True
+            break
+    if not queue_chosen:
+        args_dict["q"] = config["queue_fallback"]
 # the requested walltime can be specified as 0 (or negative) to group jobs into
 # using the glean queue, but it wouldn't make much sense to request zero hours,
 # so...
