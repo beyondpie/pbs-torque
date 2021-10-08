@@ -184,7 +184,7 @@ if config["submit_to_queue_with_fewest_jobs_waiting"] and walltime > 1:
 walltime = f"walltime={walltime}:00:00"
 
 if not config["send_email_on_error"]:
-    args_dict["e"] = ""
+    args_dict["m"] = ""
 
 
 def format_argument(args_dict, arg, quote_argument=False):
