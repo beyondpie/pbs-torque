@@ -24,3 +24,4 @@ queue_fallback: home
 submit_to_queue_with_fewest_jobs_waiting: {{cookiecutter.submit_to_queue_with_fewest_jobs_waiting}}
 # this maps home-jogleeson (the actual queue name) to home
 queues_to_check: {condo: condo, home-jogleeson: home, hotel: hotel}
+send_email_on_error: {{cookiecutter.send_email_on_error}}

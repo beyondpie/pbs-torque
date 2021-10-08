@@ -10,5 +10,6 @@
     "immediate_submit": ["False", "True"],
     "verbose": ["True", "False"],
     "printshellcmds": ["True", "False"],
-    "submit_to_queue_with_fewest_jobs_waiting": ["False", "True"]
+    "submit_to_queue_with_fewest_jobs_waiting": ["False", "True"],
+    "send_email_on_error": ["True", "False"]
 }

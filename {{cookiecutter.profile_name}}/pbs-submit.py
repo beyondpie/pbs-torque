@@ -154,9 +154,9 @@ if walltime < 1:
 if config["submit_to_queue_with_fewest_jobs_waiting"] and walltime > 1:
     # walltime is checked to leave jobs that should be allocated to glean alone
     from heapq import heappush, heappop
+
     h = []
-    out = subprocess.run(["qstat", "-Q"], capture_output=True, check=True,
-                         text=True)
+    out = subprocess.run(["qstat", "-Q"], capture_output=True, check=True, text=True)
     queue_index, queued_index = 0, 5
     output_lines = out.stdout.splitlines()
     if len(output_lines) > 2:
@@ -182,6 +182,9 @@ if config["submit_to_queue_with_fewest_jobs_waiting"] and walltime > 1:
             queue = config["queue_fallback"]
         args_dict["q"] = queue
 walltime = f"walltime={walltime}:00:00"
+
+if not config["send_email_on_error"]:
+    args_dict["e"] = ""
 
 
 def format_argument(args_dict, arg, quote_argument=False):
