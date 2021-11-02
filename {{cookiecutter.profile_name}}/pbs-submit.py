@@ -10,6 +10,7 @@ from datetime import date
 import fcntl
 from time import sleep
 from functools import partial
+from heapq import heappush, heappop
 
 with open("$((INSTALL))/submit.yaml") as config_fh:
     config = yaml.safe_load(config_fh)
@@ -153,8 +154,6 @@ if walltime < 1:
     walltime = 1
 if config["submit_to_queue_with_fewest_jobs_waiting"] and walltime > 1:
     # walltime is checked to leave jobs that should be allocated to glean alone
-    from heapq import heappush, heappop
-
     h = []
     out = subprocess.run(["qstat", "-Q"], capture_output=True, check=True, text=True)
     queue_index, queued_index = 0, 5
@@ -270,6 +269,47 @@ if nodes or ppn or mem or walltime:
     parameters.append("".join(resourceparams_list))
 
 cmd = "qsub " + " ".join(parameters)
+
+# potentially submit as another user if that functionality is available
+if "extra_users" in config:
+    # check if users actually exist
+    users = config["extra_users"]
+    if users:
+        for user in users:
+            try:
+                # it's necessary to not print anything or snakemake will
+                # interpret this as the job id
+                subprocess.run(
+                    ("id", user),
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except subprocess.CalledProcessError:
+                raise ValueError("invalid {user=} specified")
+        # users valid, now find which has the least jobs queued + running
+        h = []
+        current_user = os.getlogin()
+        for user in [current_user] + users:
+            p = subprocess.run(
+                f"qselect -u {user} -s QR | wc -l",
+                capture_output=True,
+                check=True,
+                shell=True,
+            )
+            num_jobs = int(p.stdout.decode())
+            heappush(h, (num_jobs, user))
+        _, user_chosen = heappop(h)
+        if user_chosen != current_user:
+            # need to give the script read/execute permissions for group for the
+            # script, the directory, and the scripts directory
+            os.chmod(jobscript, 0o750)
+            os.chmod(os.path.dirname(jobscript), 0o750)
+            if os.path.isdir(".snakemake/scripts"):
+                os.chmod(".snakemake/scripts", 0o770)
+            # this will just ssh in to the cluster as user_chosen and qsub the
+            # command
+            cmd = f"ssh {user_chosen}@tscc " + cmd
 
 # write the command to a log file and wait for a second to avoid overwhelming
 # the scheduler
