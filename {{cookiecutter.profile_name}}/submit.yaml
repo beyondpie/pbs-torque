@@ -7,8 +7,8 @@ default_walltime: 8
 scratch_directory: /oasis/tscc/scratch/$((USER))
 sleep_time: 1 # waits this long before submitting a job to avoid overwhelming scheduler
 queue_times:
-  condo: {default: 8, max: 8}
-  glean: {default: 1, max: 1}
+  condo: {default: 1, max: 8}
+  glean: {default: 1, max: 8}
   home: {default: 72, max: 99999} # home is unbounded
   hotel: {default: 24, max: 168}
   gpu-condo: {default: 8, max: 8}
@@ -18,7 +18,7 @@ queue_times:
 # if its max walltime is not exceeded, then the next and so on
 queue_order: [glean, condo, hotel]
 # if the walltime exceeds that of all those in queue_order, use queue_fallback
-queue_fallback: home
+queue_fallback: hotel
 # if True, for any non-glean job (i.e. walltime > 1), submit to the queue in queues_to_check
 # with the least number of jobs currently queued among queues with sufficient max walltime
 submit_to_queue_with_fewest_jobs_waiting: {{cookiecutter.submit_to_queue_with_fewest_jobs_waiting}}
