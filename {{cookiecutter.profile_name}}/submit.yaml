@@ -3,7 +3,7 @@ email: {{cookiecutter.email}}
 # this means the default_queue will be used if not overridden
 force_default_queue: False
 default_queue: condo
-default_walltime: 8
+default_walltime: 7
 scratch_directory: /oasis/tscc/scratch/$((USER))
 sleep_time: 1 # waits this long before submitting a job to avoid overwhelming scheduler
 queue_times:
