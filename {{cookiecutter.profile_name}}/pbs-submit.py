@@ -89,6 +89,9 @@ if "threads" in job_properties:
     ppn = f"ppn={job_properties['threads']}"
 if "resources" in job_properties:
     resources = job_properties["resources"]
+    ## allow tag like: icelake:mem1024
+    if "tag" in resources:
+        ppn = f"{ppn}:{resources['tag']}"
     if "nodes" in resources:
         nodes = f"nodes={resources['nodes']}"
     if ppn and not nodes:
